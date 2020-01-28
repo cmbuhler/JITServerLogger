@@ -4,7 +4,7 @@ SOURCES = $(wildcard *.cpp)
 OBJECTS = $(SOURCES:%.cpp=%.o)
 
 
-all: clean compile cassandra
+all: clean compile cassandra mongo
 
 clean:
 	rm -f *.o cassandra
@@ -14,3 +14,6 @@ compile:
 
 cassandra: $(OBJECTS)
 	$(CC) -o cassandra $(OBJECTS) -Lcpp-build/build -lcassandra
+
+mongo: $(OBJECTS)
+	$(CC) -o mongo $(OBJECTS) -I/usr/local/include/mongocxx/v_noabi -I/usr/local/include/bsoncxx/v_noabi -L/usr/local/lib -lmongocxx -lbsoncxx
