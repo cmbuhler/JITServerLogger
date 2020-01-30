@@ -3,7 +3,6 @@ int main() {
     char * ip = "127.0.0.1";
     CassandraLogger* logger = new CassandraLogger(ip);
     logger->connect();
-    logger->
     char * logs =  "\
     0x7f38af800194 00000134 [0x7f38c13565f0] 48 83 7d 50 ff \
     cmpqword ptr [rbp+0x50], 0xffffffffffffffff	# CMP8MemImms, \

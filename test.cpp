@@ -8,8 +8,8 @@
 int main(int, char**) {
     //Open new connection to mongo on localhost port 27017.
     BasePersistentLogger* logger;
-    MongoLogger mongo();
-    logger = &mongo;
+    MongoLogger* mongo = new MongoLogger();
+    logger = mongo;
 
     char * logs =  "0x7f38af800194 00000134 [0x7f38c13565f0] 48 83 7d 50 ff \
     cmpqword ptr [rbp+0x50], 0xffffffffffffffff	# CMP8MemImms, \
@@ -20,7 +20,7 @@ int main(int, char**) {
     0x7f38af80019f 0000013f [0x7f38c1356bd0]  Label L0082:			# LABEL	# (End of internal control flow)";
 
     char * clientID = "570241675495946978";
-    char * method = "java/util/Hashtable.put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;";
+    char * method = "java/util/Hashtable;";
 
     logger->logMethod(method, clientID, logs);
     return 0;

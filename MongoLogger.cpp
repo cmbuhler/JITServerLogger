@@ -7,8 +7,8 @@ MongoLogger::MongoLogger(){
     connect();
 }
 
-MongoLogger::MongoLogger(char *databaseIP, char *databasePort){
-    _uri = mongocxx::uri((std::string("mongodb://") + databaseIP + ":" + databasePort).c_str());
+MongoLogger::MongoLogger(std::string databaseIP, std::string databasePort){
+    _uri = mongocxx::uri(("mongodb://" + databaseIP + ":" + databasePort).c_str());
     _client = mongocxx::client(_uri);
     connect();
 }
@@ -23,10 +23,10 @@ void MongoLogger::disconnect() {
     return;
 }
 
-bool MongoLogger::logMethod(char* method, char* clientID, char* logContent) {
+bool MongoLogger::logMethod(std::string method, std::string clientID, std::string logContent) {
     mongocxx::collection logs = _db.collection("logs"); //TODO: Name this 'table' properly
     auto builder = bsoncxx::builder::stream::document{};
-
+    auto timestamp = std::chrono::system_clock::now();
     /*
      * The following constructs the following JSON structure:
      * {
@@ -39,6 +39,7 @@ bool MongoLogger::logMethod(char* method, char* clientID, char* logContent) {
             << "method" << method
             << "client_id" << clientID
             << "log" << logContent
+            << "timestamp" << bsoncxx::types::b_date(timestamp)
             << bsoncxx::builder::stream::finalize;
 
     bsoncxx::stdx::optional<mongocxx::result::insert_one> result =

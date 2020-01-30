@@ -1,11 +1,11 @@
 #ifndef JITSERVERLOGGER_MONGOLOGGER_HPP
 #define JITSERVERLOGGER_MONGOLOGGER_HPP
-#include <cstdint>
+#include <chrono>
 #include <iostream>
-#include <vector>
 #include <bsoncxx/json.hpp>
 #include <bsoncxx/builder/stream/helpers.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
+#include <bsoncxx/types.hpp>
 #include <mongocxx/client.hpp>
 #include <mongocxx/stdx.hpp>
 #include <mongocxx/uri.hpp>
@@ -26,10 +26,10 @@ protected:
     void connect();
     void disconnect();
 public:
-    MongoLogger(char* databaseIP, char* databasePort);
+    MongoLogger(std::string databaseIP, std::string databasePort);
     MongoLogger();
     ~MongoLogger();
-    bool logMethod(char* method, char* clientID, char* logContent);
+    bool logMethod(std::string method, std::string clientID, std::string logContent);
 };
 
 #endif //JITSERVERLOGGER_MONGOLOGGER_HPP
