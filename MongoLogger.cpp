@@ -8,14 +8,14 @@ MongoLogger::MongoLogger(){
 }
 
 MongoLogger::MongoLogger(std::string databaseIP, std::string databasePort){
-    _uri = mongocxx::uri(("mongodb://" + databaseIP + ":" + databasePort).c_str());
+    _uri = mongocxx::uri(("mongodb://" + std::string("superuser:UserSuper@") + databaseIP + ":" + databasePort +"/?ssl=true&authSource=my_test_db").c_str());
     _client = mongocxx::client(_uri);
     connect();
 }
 
 void MongoLogger::connect() {
-//    TODO: Make this a constructor variable.
     _db = _client["my_test_db"];
+    //return true;
 }
 
 void MongoLogger::disconnect() {
@@ -27,12 +27,14 @@ bool MongoLogger::logMethod(std::string method, std::string clientID, std::strin
     mongocxx::collection logs = _db.collection("logs"); //TODO: Name this 'table' properly
     auto builder = bsoncxx::builder::stream::document{};
     auto timestamp = std::chrono::system_clock::now();
+
     /*
      * The following constructs the following JSON structure:
      * {
      *     "method" : "method/package/methodName()",
      *     "client_id" : "clientid",
-     *     "log" : "big_log"
+     *     "log" : "big_log",
+     *     "timestamp" : ISODate
      * }
      */
     bsoncxx::document::value doc_value = builder
@@ -42,10 +44,16 @@ bool MongoLogger::logMethod(std::string method, std::string clientID, std::strin
             << "timestamp" << bsoncxx::types::b_date(timestamp)
             << bsoncxx::builder::stream::finalize;
 
-    bsoncxx::stdx::optional<mongocxx::result::insert_one> result =
-            logs.insert_one(doc_value.view());
+    try {
+        bsoncxx::stdx::optional<mongocxx::result::insert_one> result =
+                logs.insert_one(doc_value.view());
+    } catch (const mongocxx::bulk_write_exception& e){
+        //Insert failed print why and exit for now
+        //TODO: Not exit but handle properly.
+        std::cout << e.what() << std::endl;
+        return false;
+    }
 
-    //TODO Verify Result
     return true;
 }
 

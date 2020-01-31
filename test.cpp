@@ -22,6 +22,8 @@ int main(int, char**) {
     char * clientID = "570241675495946978";
     char * method = "java/util/Hashtable;";
 
+    std::cout << "We are here" << std::endl;
+
     logger->logMethod(method, clientID, logs);
     return 0;
 }
