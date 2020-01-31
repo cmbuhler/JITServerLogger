@@ -4,7 +4,7 @@ SOURCES = $(wildcard *.cpp)
 OBJECTS = $(SOURCES:%.cpp=%.o)
 
 
-all: clean compile cassandra 
+all: clean compile cassandra mongo
 clean:
 	rm -f *.o cassandra mongo
 compile:

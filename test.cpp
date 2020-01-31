@@ -8,7 +8,7 @@
 int main(int, char**) {
     //Open new connection to mongo on localhost port 27017.
     BasePersistentLogger* logger;
-    MongoLogger* mongo = new MongoLogger();
+    MongoLogger* mongo = new MongoLogger("127.0.0.1", "27017", "jitserver_logs", "jitlogger", "jitlogger");
     logger = mongo;
 
     char * logs =  "0x7f38af800194 00000134 [0x7f38c13565f0] 48 83 7d 50 ff \

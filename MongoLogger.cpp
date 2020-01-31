@@ -2,24 +2,77 @@
 mongocxx::instance MongoLogger::_inst = mongocxx::instance{};
 
 MongoLogger::MongoLogger(){
-    _uri = mongocxx::uri("mongodb://localhost:27017");
-    _client = mongocxx::client(_uri);
+    _databaseIP = "127.0.0.1";
+    _databasePort = "27017";
+    _databaseName = "jitserver_logs";
     connect();
 }
 
-MongoLogger::MongoLogger(std::string databaseIP, std::string databasePort){
-    _uri = mongocxx::uri(("mongodb://" + std::string("superuser:UserSuper@") + databaseIP + ":" + databasePort +"/?ssl=true&authSource=my_test_db").c_str());
-    _client = mongocxx::client(_uri);
+MongoLogger::MongoLogger(std::string databaseIP, std::string databasePort, std::string databaseName)
+        : BasePersistentLogger(databaseIP, databasePort, databaseName){
     connect();
 }
 
-void MongoLogger::connect() {
-    _db = _client["my_test_db"];
-    //return true;
+MongoLogger::MongoLogger(std::string databaseIP, std::string databasePort, std::string databaseName,
+        std::string databaseUsername, std::string databasePassword)
+        : BasePersistentLogger(databaseIP, databasePort, databaseName, databaseUsername, databasePassword){
+    connect();
+}
+
+std::string MongoLogger::constructURI() {
+    // Check if we have the database name
+    std::cout << _databaseIP << std::endl;
+    if(_databaseName.empty()){
+        // We can not connect to an unknown database.
+        return "";
+    }
+
+    // Check if we have db IP and Port
+    if(_databaseIP.empty()) {
+        // No IP try localhost
+        _databaseIP = "127.0.0.1";
+    }
+    if(_databasePort.empty()) {
+        // No Port try default MongoDB port
+        _databasePort = "27017";
+    }
+
+    std::string host = _databaseIP + ":" + _databasePort;
+
+    // Check if we have credentials
+    std::string credentials = "";
+    if(!_databaseUsername.empty()){
+        if(_databasePassword.empty()){
+            credentials = _databaseUsername;
+        } else {
+            credentials = _databaseUsername + ":" + _databasePassword;
+        }
+    }
+
+    std::cout << "mongodb://" + credentials + "@" + host + "/?authSource=" + _databaseName << std::endl;
+    if(credentials.empty()){
+        return "mongodb://" + host + "";
+    }
+    return "mongodb://" + credentials + "@" + host + "/?authSource=" + _databaseName;
+}
+
+bool MongoLogger::connect() {
+
+    try {
+        _uri = mongocxx::uri(constructURI());
+        _client = mongocxx::client(_uri);
+        _db = _client[_databaseName];
+    } catch (const mongocxx::logic_error& e) {
+        std::cout << "Error configuring connection to MongoDB Server: "
+            << e.what() << std::endl;
+        return false;
+    }
+
+    return true;
 }
 
 void MongoLogger::disconnect() {
-//    Does not actually do anything for Mongocxx!
+//  Does not actually do anything for Mongocxx
     return;
 }
 
@@ -50,7 +103,8 @@ bool MongoLogger::logMethod(std::string method, std::string clientID, std::strin
     } catch (const mongocxx::bulk_write_exception& e){
         //Insert failed print why and exit for now
         //TODO: Not exit but handle properly.
-        std::cout << e.what() << std::endl;
+        std::cout << "Error executing log insert query: "
+            << e.what() << std::endl;
         return false;
     }
 

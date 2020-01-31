@@ -7,6 +7,7 @@
 #include <bsoncxx/builder/stream/document.hpp>
 #include <bsoncxx/types.hpp>
 #include <mongocxx/exception/bulk_write_exception.hpp>
+#include <mongocxx/exception/logic_error.hpp>
 #include <mongocxx/client.hpp>
 #include <mongocxx/stdx.hpp>
 #include <mongocxx/uri.hpp>
@@ -23,11 +24,14 @@ private:
     mongocxx::uri _uri;
     mongocxx::client _client;
     mongocxx::database _db;
-protected:
-    void connect();
-    void disconnect();
+
+    std::string constructURI();
 public:
-    MongoLogger(std::string databaseIP, std::string databasePort);
+    bool connect();
+    void disconnect();
+    MongoLogger(std::string databaseIP, std::string databasePort, std::string databaseName);
+    MongoLogger(std::string databaseIP, std::string databasePort, std::string databaseName,
+                std::string databaseUsername, std::string databasePassword);
     MongoLogger();
     ~MongoLogger();
     bool logMethod(std::string method, std::string clientID, std::string logContent);

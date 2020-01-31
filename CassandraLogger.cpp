@@ -1,5 +1,5 @@
 #include "CassandraLogger.hpp"
-CassandraLogger::CassandraLogger(std::string databaseIP, std::string databasePort): BasePersistentLogger(databaseIP, databasePort){
+CassandraLogger::CassandraLogger(std::string databaseIP, std::string databasePort, std::string databaseName): BasePersistentLogger(databaseIP, databasePort, databaseName){
     _session = NULL;
     _connectFuture = NULL;
     _cluster = NULL;
@@ -10,6 +10,14 @@ CassandraLogger::CassandraLogger(): BasePersistentLogger(){
     _connectFuture = NULL;
     _cluster = NULL;
     _databasePort = "9042";
+}
+
+CassandraLogger::CassandraLogger(std::string databaseIP, std::string databasePort,
+        std::string databaseName, std::string databaseUsername, std::string databasePassword)
+        : BasePersistentLogger(databaseIP, databasePort, databaseName, databaseUsername, databasePassword){
+    _session = NULL;
+    _connectFuture = NULL;
+    _cluster = NULL;
 }
 
 bool CassandraLogger::createKeySpace(string keyspace) {
