@@ -1,65 +1,164 @@
 #include "CassandraLogger.hpp"
-
-CassandraLogger::CassandraLogger(char* databaseIpAddress)
-{
-    _databaseIpAddress = databaseIpAddress;
+CassandraLogger::CassandraLogger(std::string databaseIP, std::string databasePort): BasePersistentLogger(databaseIP, databasePort){
     _session = NULL;
-    _connect_future = NULL;
+    _connectFuture = NULL;
     _cluster = NULL;
 }
 
-void CassandraLogger::connect() {
+CassandraLogger::CassandraLogger(): BasePersistentLogger(){
+    _session = NULL;
+    _connectFuture = NULL;
+    _cluster = NULL;
+    _databasePort = "9042";
+}
+
+bool CassandraLogger::createKeySpace(string keyspace) {
+    string queryString = "CREATE KEYSPACE IF NOT EXISTS " + keyspace + " WITH REPLICATION = {'class':'SimpleStrategy','replication_factor':1};";
+    CassStatement* statement = cass_statement_new(queryString.c_str(), 0);
+
+    CassFuture* queryFuture = cass_session_execute(_session, statement);
+    cass_statement_free(statement);
+    if (cass_future_error_code(queryFuture) != CASS_OK) {
+        /* Display connection error message */
+        const char* message;
+        size_t messageLength;
+        cass_future_error_message(queryFuture, &message, &messageLength);
+        fprintf(stderr, "keyspace creation error: '%.*s'\n", (int)messageLength, message);
+        
+        cass_future_free(queryFuture);
+        return false;
+    }
+
+    cass_future_free(queryFuture);
+    return true;
+
+}
+bool CassandraLogger::createTable(string keyspace, string table_name) {
+   
+    string queryString = "CREATE TABLE IF NOT EXISTS " + keyspace + "." + table_name + " (clientID text primary key, methodName text, logContent text);";
+    CassStatement* statement = cass_statement_new(queryString.c_str(), 0);
+
+    CassFuture* queryFuture = cass_session_execute(_session, statement);
+    cass_statement_free(statement);
+    if (cass_future_error_code(queryFuture) != CASS_OK) {
+        /* Display connection error message */
+        const char* message;
+        size_t messageLength;
+        cass_future_error_message(queryFuture, &message, &messageLength);
+        fprintf(stderr, "table creation error: '%.*s'\n", (int)messageLength, message);
+        
+        cass_future_free(queryFuture);
+        return false;
+    }
+
+    cass_future_free(queryFuture);
+    return true;
+
+
+
+
+
+}
+bool CassandraLogger::connect() {
     /* Setup and connect to cluster */
-    _connect_future = NULL;
     _cluster = cass_cluster_new();
     _session = cass_session_new();
 
-     cass_cluster_set_protocol_version(_cluster, 3);
-    /* Add contact points */
-    cass_cluster_set_contact_points(_cluster, _databaseIpAddress);
+    /*Set protocol version */
+    CassError rc_set_protocol = cass_cluster_set_protocol_version(_cluster, 4);
+    if (rc_set_protocol != CASS_OK) {
+        cout << cass_error_desc(rc_set_protocol) << endl;
+        return false;
 
-    /* Provide the cluster object as configuration to connect the session */
-    _connect_future = cass_session_connect(_session, _cluster);
-   
-    /* This operation will block until the result is ready */
-    CassError rc = cass_future_error_code(_connect_future);
-
-    if (rc != CASS_OK) {
-        /* Display connection error message */
-        const char* message;
-        size_t message_length;
-        cass_future_error_message(_connect_future, &message, &message_length);
-        fprintf(stderr, "Connect error: '%.*s'\n", (int)message_length, message);
     }
 
+    /* Add contact points */
+    CassError rc_set_ip = cass_cluster_set_contact_points(_cluster, _databaseIP.c_str());
+    if (rc_set_ip != CASS_OK) {
+        cout << cass_error_desc(rc_set_ip) << endl;
+        return false;
+
+    }
+
+    /*Set port number*/
+    CassError rc_set_port = cass_cluster_set_port(_cluster, stoi(_databasePort));
+    if (rc_set_port != CASS_OK) {
+        cout << cass_error_desc(rc_set_port) << endl;
+        return false;
+
+    }
+
+    /* Provide the cluster object as configuration to connect the session */
+    _connectFuture = cass_session_connect(_session, _cluster);
+   
+    if (cass_future_error_code(_connectFuture) != CASS_OK) {
+        /* Display connection error message */
+        const char* message;
+        size_t messageLength;
+        cass_future_error_message(_connectFuture, &message, &messageLength);
+        fprintf(stderr, "Connect error: '%.*s'\n", (int)messageLength, message);
+        return false;
+    }
+    return true;
 
 }
-void CassandraLogger::execute_query(char* key, char* logContent){
 
+
+bool CassandraLogger::logMethod(std::string method, std::string clientID, std::string logContent){
+    
+    // create table space and table first
+    if (!createKeySpace("test")) return false;
+    if (!createTable("test","logs")) return false;
 
     
-    /* There are two bind variables in the query string */
     CassStatement* statement
-    = cass_statement_new("INSERT INTO test.logs (key, log_content) VALUES (?, ?)", 2);
+    = cass_statement_new("INSERT INTO test.logs (clientID, methodName, logContent) VALUES (?, ?, ?)", 3);
 
     /* Bind the values using the indices of the bind variables */
-    cass_statement_bind_string(statement, 0, key);
-    cass_statement_bind_string(statement, 1, logContent);
+    CassError rc_set_bind_pk = cass_statement_bind_string(statement, 0, clientID.c_str());
+    if (rc_set_bind_pk != CASS_OK) {
+        cout << cass_error_desc(rc_set_bind_pk) << endl;
+        cass_statement_free(statement);
+        return false;
+    }
 
-    CassFuture* query_future = cass_session_execute(_session, statement);
+    CassError rc_set_bind_method = cass_statement_bind_string(statement, 0, method.c_str());
+    if (rc_set_bind_pk != CASS_OK) {
+        cout << cass_error_desc(rc_set_bind_method) << endl;
+        cass_statement_free(statement);
+        return false;
+    }
+    CassError rc_set_bind_log_content = cass_statement_bind_string(statement, 1, logContent.c_str());
+
+     if (rc_set_bind_log_content != CASS_OK) {
+        cout << cass_error_desc(rc_set_bind_log_content) << endl;
+        cass_statement_free(statement);
+        return false;
+    }
+
+    CassFuture* queryFuture = cass_session_execute(_session, statement);
 
     /* Statement objects can be freed immediately after being executed */
     cass_statement_free(statement);
+    if (cass_future_error_code(queryFuture) != CASS_OK) {
+        /* Display connection error message */
+        const char* message;
+        size_t messageLength;
+        cass_future_error_message(queryFuture, &message, &messageLength);
+        fprintf(stderr, "query execution error: '%.*s'\n", (int)messageLength, message);
+        cass_future_free(queryFuture);
+        return false;
+    }
 
-    /* This will block until the query has finished */
-    CassError rc = cass_future_error_code(query_future);
-    printf("Query result: %s\n", cass_error_desc(rc));
-    cass_future_free(query_future);
+    cass_future_free(queryFuture);
+    return true;
     
 
 }
+
+
 void CassandraLogger::disconnect() {
-    cass_future_free(_connect_future);
+    cass_future_free(_connectFuture);
     cass_session_free(_session);
     cass_cluster_free(_cluster);
 }

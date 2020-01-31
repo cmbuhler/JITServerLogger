@@ -10,9 +10,9 @@ protected:
     std::string _databasePassword;
     std::string _databaseName;
 
-    virtual void connect() = 0;
-    virtual void disconnect() = 0;
 public:
+    virtual bool connect() = 0;
+    virtual void disconnect() = 0;
     BasePersistentLogger(){
         _databaseIP = "127.0.0.1";
         _databasePort = "";
