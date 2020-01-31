@@ -1,22 +1,21 @@
 #include <cassandra.h>
 #include <iostream>
+#include "BasePersistentLogger.hpp"
 using namespace std;
-class CassandraLogger {
+class CassandraLogger : public BasePersistentLogger {
 
     private:
-    CassCluster* _cluster;
-    CassSession* _session;
-    CassFuture* _connect_future;
-    char * _databaseIpAddress;
-    public:
-        CassandraLogger(char* databaseIpAddress);
-        void execute_query(char* key, char* logContent);
-        void connect();
+        CassCluster* _cluster;
+        CassSession* _session;
+        CassFuture* _connectFuture;
+        bool createKeySpace(string keyspace);
+        bool createTable(string keyspace, string tableName);
+        
+    public: 
+        bool connect();
         void disconnect();
-        void setCassCluster(CassCluster* cluster);
-        void setCassSession(CassSession* session);
-        void setCassFuture(CassFuture* connect_future);
-        CassCluster * getCassCluster();
-        CassSession * getCassSession();
-        CassFuture * getCassFuture();
+        CassandraLogger(std::string databaseIP, std::string databasePort);
+        CassandraLogger();
+        bool logMethod(std::string method, std::string clientID, std::string logContent);
+       
 };

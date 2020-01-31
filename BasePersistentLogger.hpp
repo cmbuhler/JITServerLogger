@@ -6,10 +6,9 @@ class BasePersistentLogger {
 protected:
     std::string _databaseIP;
     std::string _databasePort;
-
-    virtual void connect() = 0;
-    virtual void disconnect() = 0;
 public:
+    virtual bool connect() = 0;
+    virtual void disconnect() = 0;
     BasePersistentLogger(){
         _databaseIP = "127.0.0.1";
         _databasePort = "27017";
