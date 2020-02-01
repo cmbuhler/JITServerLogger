@@ -1,7 +1,7 @@
 #include "CassandraLogger.hpp"
 int main() {
     
-    CassandraLogger* logger = new CassandraLogger( );
+    CassandraLogger* logger = new CassandraLogger();
     logger->connect();
     string logs =  "\
     0x7f38af800194 00000134 [0x7f38c13565f0] 48 83 7d 50 ff \
@@ -14,6 +14,9 @@ int main() {
     string clientID = "570241675495946978";
     string method = "java/util/Hashtable.put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;";
     logger->logMethod(method, clientID, logs);
+    logger->disconnect();
+    logger->connect();
+    logger->logMethod(method, clientID, "another log");
     logger->disconnect();
     return 0;
 

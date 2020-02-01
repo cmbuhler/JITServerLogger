@@ -4,9 +4,9 @@ SOURCES = $(wildcard *.cpp)
 OBJECTS = $(SOURCES:%.cpp=%.o)
 
 
-all: clean compile cassandra mongo
+all: clean compile cassandra 
 clean:
-	rm -f *.o cassandra mongo
+	rm -f *.o cassandra 
 compile:
 %.o: %.cpp
 	$(CC) ${CFLAGS} -c $^ -o $@ -I/usr/local/include/mongocxx/v_noabi -I/usr/local/include/bsoncxx/v_noabi
@@ -14,5 +14,3 @@ compile:
 cassandra: $(OBJECTS)
 	$(CC) -o cassandra Test.o CassandraLogger.o -Lcpp-build/build -lcassandra
 
-mongo: $(OBJECTS)
-	$(CC) -o mongo MongoLogger.o test.o -L/usr/local/lib -lmongocxx -lbsoncxx
