@@ -1,7 +1,7 @@
 #include "CassandraLogger.hpp"
 int main() {
     
-    CassandraLogger* logger = new CassandraLogger( );
+    CassandraLogger* logger = new CassandraLogger();
     logger->connect();
     string logs =  "\
     0x7f38af800194 00000134 [0x7f38c13565f0] 48 83 7d 50 ff \

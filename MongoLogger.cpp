@@ -1,4 +1,12 @@
 #include "MongoLogger.hpp"
+#include <chrono>
+#include <iostream>
+#include <bsoncxx/json.hpp>
+#include <bsoncxx/types.hpp>
+#include <mongocxx/exception/bulk_write_exception.hpp>
+#include <mongocxx/exception/logic_error.hpp>
+#include <mongocxx/stdx.hpp>
+
 mongocxx::instance MongoLogger::_inst = mongocxx::instance{};
 
 MongoLogger::MongoLogger(){
@@ -8,13 +16,13 @@ MongoLogger::MongoLogger(){
     connect();
 }
 
-MongoLogger::MongoLogger(std::string databaseIP, std::string databasePort, std::string databaseName)
+MongoLogger::MongoLogger(std::string const &databaseIP, std::string const &databasePort, std::string const &databaseName)
         : BasePersistentLogger(databaseIP, databasePort, databaseName){
     connect();
 }
 
-MongoLogger::MongoLogger(std::string databaseIP, std::string databasePort, std::string databaseName,
-        std::string databaseUsername, std::string databasePassword)
+MongoLogger::MongoLogger(std::string const &databaseIP, std::string const &databasePort, std::string const &databaseName,
+        std::string const &databaseUsername, std::string const &databasePassword)
         : BasePersistentLogger(databaseIP, databasePort, databaseName, databaseUsername, databasePassword){
     connect();
 }
@@ -76,7 +84,7 @@ void MongoLogger::disconnect() {
     return;
 }
 
-bool MongoLogger::logMethod(std::string method, std::string clientID, std::string logContent) {
+bool MongoLogger::logMethod(std::string const &method, std::string const &clientID, std::string const &logContent) {
     mongocxx::collection logs = _db.collection("logs"); //TODO: Name this 'table' properly
     auto builder = bsoncxx::builder::stream::document{};
     auto timestamp = std::chrono::system_clock::now();
