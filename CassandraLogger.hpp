@@ -1,4 +1,5 @@
 #include <cassandra.h>
+#include <time.h>
 #include <iostream>
 #include "BasePersistentLogger.hpp"
 using namespace std;

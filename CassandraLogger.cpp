@@ -43,7 +43,7 @@ bool CassandraLogger::createKeySpace(string keyspace) {
 }
 bool CassandraLogger::createTable(string keyspace, string table_name) {
    
-    string queryString = "CREATE TABLE IF NOT EXISTS " + keyspace + "." + table_name + " (clientID text primary key, methodName text, logContent text);";
+    string queryString = "CREATE TABLE IF NOT EXISTS " + keyspace + "." + table_name + " (clientID text, methodName text, logContent text, insertionDate date,insertionTime time, primary key (clientID, methodName, insertionDate, insertionTime));";
     CassStatement* statement = cass_statement_new(queryString.c_str(), 0);
 
     CassFuture* queryFuture = cass_session_execute(_session, statement);
@@ -120,7 +120,7 @@ bool CassandraLogger::logMethod(std::string method, std::string clientID, std::s
 
     
     CassStatement* statement
-    = cass_statement_new("INSERT INTO test.logs (clientID, methodName, logContent) VALUES (?, ?, ?)", 3);
+    = cass_statement_new("INSERT INTO test.logs (clientID, methodName, logContent, insertionDate, insertionTime) VALUES (?, ?, ?, ?, ?)", 5);
 
     /* Bind the values using the indices of the bind variables */
     CassError rc_set_bind_pk = cass_statement_bind_string(statement, 0, clientID.c_str());
@@ -130,16 +130,38 @@ bool CassandraLogger::logMethod(std::string method, std::string clientID, std::s
         return false;
     }
 
-    CassError rc_set_bind_method = cass_statement_bind_string(statement, 0, method.c_str());
+    CassError rc_set_bind_method = cass_statement_bind_string(statement, 1, method.c_str());
     if (rc_set_bind_pk != CASS_OK) {
         cout << cass_error_desc(rc_set_bind_method) << endl;
         cass_statement_free(statement);
         return false;
     }
-    CassError rc_set_bind_log_content = cass_statement_bind_string(statement, 1, logContent.c_str());
+    CassError rc_set_bind_log_content = cass_statement_bind_string(statement, 2, logContent.c_str());
 
      if (rc_set_bind_log_content != CASS_OK) {
         cout << cass_error_desc(rc_set_bind_log_content) << endl;
+        cass_statement_free(statement);
+        return false;
+    }
+
+    time_t now = time(NULL); /* Time in seconds from Epoch */
+    /* Converts the time since the Epoch in seconds to the 'date' type */
+    cass_uint32_t year_month_day_of_insertion = cass_date_from_epoch(now);
+    /* Converts the time since the Epoch in seconds to the 'time' type */
+    cass_int64_t time_of_insertion = cass_time_from_epoch(now);
+
+    /* 'date' uses an unsigned 32-bit integer */
+    CassError rc_set_bind_insertion_date = cass_statement_bind_uint32(statement, 3, year_month_day_of_insertion);
+    
+    if (rc_set_bind_insertion_date != CASS_OK) {
+        cout << cass_error_desc(rc_set_bind_insertion_date) << endl;
+        cass_statement_free(statement);
+        return false;
+    }
+    /* 'time' uses a signed 64-bit integer */
+    CassError rc_set_bind_insertion_time = cass_statement_bind_int64(statement, 4, time_of_insertion);
+    if (rc_set_bind_insertion_time != CASS_OK) {
+        cout << cass_error_desc(rc_set_bind_insertion_time) << endl;
         cass_statement_free(statement);
         return false;
     }
