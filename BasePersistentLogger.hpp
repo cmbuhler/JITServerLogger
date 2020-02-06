@@ -14,7 +14,7 @@ public:
     virtual bool connect() = 0;
     virtual void disconnect() = 0;
     BasePersistentLogger(){
-        _databaseIP = "";
+        _databaseIP = "127.0.0.1";
         _databasePort = "";
         _databaseName = "";
         _databaseUsername = "";

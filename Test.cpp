@@ -15,6 +15,9 @@ int main() {
     string method = "java/util/Hashtable.put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;";
     logger->logMethod(method, clientID, logs);
     logger->disconnect();
+    logger->connect();
+    logger->logMethod(method, clientID, "another log");
+    logger->disconnect();
     return 0;
 
 
