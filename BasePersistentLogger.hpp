@@ -20,22 +20,22 @@ public:
         _databaseUsername = "";
         _databasePassword = "";
     }
-    BasePersistentLogger(std::string databaseIP, std::string databasePort, std::string databaseName){
+    BasePersistentLogger(std::string const &databaseIP, std::string const &databasePort, std::string const &databaseName){
         _databaseIP = databaseIP;
         _databasePort = databasePort;
         _databaseName = databaseName;
         _databaseUsername = "";
         _databasePassword = "";
     }
-    BasePersistentLogger(std::string databaseIP, std::string databasePort, std::string databaseName,
-            std::string databaseUsername, std::string databasePassword){
+    BasePersistentLogger(std::string const &databaseIP, std::string const &databasePort, std::string const &databaseName,
+            std::string const &databaseUsername, std::string const &databasePassword){
         _databaseIP = databaseIP;
         _databasePort = databasePort;
         _databaseName = databaseName;
         _databaseUsername = databaseUsername;
         _databasePassword = databasePassword;
     }
-    virtual bool logMethod(std::string method, std::string clientID, std::string logContent) = 0;
+    virtual bool logMethod(std::string const &method, std::string const &clientID, std::string const &logContent) = 0;
 };
 
 #endif //JITSERVERLOGGER_BASEPERSISTENTLOGGER_H

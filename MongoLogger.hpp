@@ -1,19 +1,16 @@
 #ifndef JITSERVERLOGGER_MONGOLOGGER_HPP
 #define JITSERVERLOGGER_MONGOLOGGER_HPP
-#include <chrono>
-#include <iostream>
-#include <bsoncxx/json.hpp>
+
+#include "BasePersistentLogger.hpp"
 #include <bsoncxx/builder/stream/helpers.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
-#include <bsoncxx/types.hpp>
-#include <mongocxx/exception/bulk_write_exception.hpp>
-#include <mongocxx/exception/logic_error.hpp>
 #include <mongocxx/client.hpp>
-#include <mongocxx/stdx.hpp>
 #include <mongocxx/uri.hpp>
 #include <mongocxx/instance.hpp>
 
-#include "BasePersistentLogger.hpp"
+
+
+
 
 using bsoncxx::builder::stream::document;
 using bsoncxx::builder::stream::finalize;
@@ -29,12 +26,12 @@ private:
 public:
     bool connect();
     void disconnect();
-    MongoLogger(std::string databaseIP, std::string databasePort, std::string databaseName);
-    MongoLogger(std::string databaseIP, std::string databasePort, std::string databaseName,
-                std::string databaseUsername, std::string databasePassword);
+    MongoLogger(std::string const &databaseIP, std::string const &databasePort, std::string const &databaseName);
+    MongoLogger(std::string const &databaseIP, std::string const &databasePort, std::string const &databaseName,
+                std::string const &databaseUsername, std::string const &databasePassword);
     MongoLogger();
     ~MongoLogger();
-    bool logMethod(std::string method, std::string clientID, std::string logContent);
+    bool logMethod(std::string const &method, std::string const &clientID, std::string const &logContent);
 };
 
 #endif //JITSERVERLOGGER_MONGOLOGGER_HPP
