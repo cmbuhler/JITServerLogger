@@ -1,3 +1,6 @@
+#include <time.h>
+#include <iostream>
+#include <cassandra.h>
 #include "CassandraLogger.hpp"
 CassandraLogger::CassandraLogger(std::string const &databaseIP, std::string const &databasePort, std::string const &databaseName): BasePersistentLogger(databaseIP, databasePort, databaseName){
     _session = NULL;
@@ -20,7 +23,7 @@ CassandraLogger::CassandraLogger(std::string const &databaseIP, std::string cons
     _cluster = NULL;
 }
 
-bool CassandraLogger::createKeySpace(string keyspace) {
+bool CassandraLogger::createKeySpace(std::string const &keyspace) {
     string queryString = "CREATE KEYSPACE IF NOT EXISTS " + keyspace + " WITH REPLICATION = {'class':'SimpleStrategy','replication_factor':1};";
     CassStatement* statement = cass_statement_new(queryString.c_str(), 0);
 
@@ -41,9 +44,9 @@ bool CassandraLogger::createKeySpace(string keyspace) {
     return true;
 
 }
-bool CassandraLogger::createTable(string keyspace, string table_name) {
+bool CassandraLogger::createTable(std::string const &keyspace, std::string const &tableName) {
    
-    string queryString = "CREATE TABLE IF NOT EXISTS " + keyspace + "." + table_name + " (clientID text, methodName text, logContent text, insertionDate date,insertionTime time, primary key (clientID, methodName, insertionDate, insertionTime));";
+    string queryString = "CREATE TABLE IF NOT EXISTS " + keyspace + "." + tableName + " (clientID text, methodName text, logContent text, insertionDate date,insertionTime time, primary key (clientID, methodName, insertionDate, insertionTime));";
     CassStatement* statement = cass_statement_new(queryString.c_str(), 0);
 
     CassFuture* queryFuture = cass_session_execute(_session, statement);

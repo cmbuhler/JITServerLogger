@@ -1,6 +1,3 @@
-#include <cassandra.h>
-#include <time.h>
-#include <iostream>
 #include "BasePersistentLogger.hpp"
 using namespace std;
 class CassandraLogger : public BasePersistentLogger {
@@ -9,8 +6,8 @@ class CassandraLogger : public BasePersistentLogger {
         CassCluster* _cluster;
         CassSession* _session;
         CassFuture* _connectFuture;
-        bool createKeySpace(string keyspace);
-        bool createTable(string keyspace, string tableName);
+        bool createKeySpace(std::string const &keyspace);
+        bool createTable(std::string const &keyspace, std::string const &tableName);
         
     public: 
         bool connect();
