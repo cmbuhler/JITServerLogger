@@ -13,23 +13,21 @@ MongoLogger::MongoLogger(){
     _databaseIP = "127.0.0.1";
     _databasePort = "27017";
     _databaseName = "jitserver_logs";
-    connect();
 }
 
 MongoLogger::MongoLogger(std::string const &databaseIP, std::string const &databasePort, std::string const &databaseName)
         : BasePersistentLogger(databaseIP, databasePort, databaseName){
-    connect();
+
 }
 
 MongoLogger::MongoLogger(std::string const &databaseIP, std::string const &databasePort, std::string const &databaseName,
         std::string const &databaseUsername, std::string const &databasePassword)
         : BasePersistentLogger(databaseIP, databasePort, databaseName, databaseUsername, databasePassword){
-    connect();
+
 }
 
 std::string MongoLogger::constructURI() {
     // Check if we have the database name
-    std::cout << _databaseIP << std::endl;
     if(_databaseName.empty()){
         // We can not connect to an unknown database.
         return "";
@@ -57,7 +55,6 @@ std::string MongoLogger::constructURI() {
         }
     }
 
-    std::cout << "mongodb://" + credentials + "@" + host + "/?authSource=" + _databaseName << std::endl;
     if(credentials.empty()){
         return "mongodb://" + host + "";
     }
@@ -65,27 +62,29 @@ std::string MongoLogger::constructURI() {
 }
 
 bool MongoLogger::connect() {
-
+    //Verify we can construct a valid Mongo Client
     try {
         _uri = mongocxx::uri(constructURI());
         _client = mongocxx::client(_uri);
         _db = _client[_databaseName];
     } catch (const mongocxx::logic_error& e) {
-        std::cout << "Error configuring connection to MongoDB Server: "
+        std::cerr << "Error configuring connection to MongoDB Server: "
             << e.what() << std::endl;
         return false;
     }
 
+    //Mongo is designed to be always available. Thus there is no "Connection" object
+    //and you will find that the "Connection" is tested on every read/write.
     return true;
 }
 
 void MongoLogger::disconnect() {
-//  Does not actually do anything for Mongocxx
+    //Does not actually do anything for Mongo as noted in connect()
     return;
 }
 
 bool MongoLogger::logMethod(std::string const &method, std::string const &clientID, std::string const &logContent) {
-    mongocxx::collection logs = _db.collection("logs"); //TODO: Name this 'table' properly
+    mongocxx::collection logs = _db.collection("logs");
     auto builder = bsoncxx::builder::stream::document{};
     auto timestamp = std::chrono::system_clock::now();
 
@@ -109,9 +108,7 @@ bool MongoLogger::logMethod(std::string const &method, std::string const &client
         bsoncxx::stdx::optional<mongocxx::result::insert_one> result =
                 logs.insert_one(doc_value.view());
     } catch (const mongocxx::bulk_write_exception& e){
-        //Insert failed print why and exit for now
-        //TODO: Not exit but handle properly.
-        std::cout << "Error executing log insert query: "
+        std::cerr << "Error executing log insert query: "
             << e.what() << std::endl;
         return false;
     }
