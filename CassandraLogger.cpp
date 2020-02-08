@@ -39,7 +39,7 @@ bool CassandraLogger::createKeySpace() {
 }
 bool CassandraLogger::createTable(std::string const &tableName) {
    
-    std::string queryString = "CREATE TABLE IF NOT EXISTS " + _databaseName + "." + tableName + " (clientID text, methodName text, logContent text, insertionDate date,insertionTime time, primary key (clientID, methodName));";
+    std::string queryString = "CREATE TABLE IF NOT EXISTS " + _databaseName + "." + tableName + " (clientID text, methodName text, logContent text, insertionDate date,insertionTime time, primary key (clientID, methodName, insertionDate, insertionTime));";
     CassStatement* statement = cass_statement_new(queryString.c_str(), 0);
 
     CassFuture* queryFuture = cass_session_execute(_session, statement);
@@ -67,7 +67,8 @@ bool CassandraLogger::connect() {
     /* Setup and connect to cluster */
     _cluster = cass_cluster_new();
     _session = cass_session_new();
-
+    /*authenticate using databaseUsername and databasePassword*/
+    cass_cluster_set_credentials(_cluster, _databaseUsername.c_str(), _databasePassword.c_str());
     /*Set protocol version */
     CassError rc_set_protocol = cass_cluster_set_protocol_version(_cluster, 4);
     if (rc_set_protocol != CASS_OK) {
