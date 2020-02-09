@@ -13,13 +13,7 @@ protected:
 public:
     virtual bool connect() = 0;
     virtual void disconnect() = 0;
-    BasePersistentLogger(){
-        _databaseIP = "127.0.0.1";
-        _databasePort = "";
-        _databaseName = "";
-        _databaseUsername = "";
-        _databasePassword = "";
-    }
+    
     BasePersistentLogger(std::string const &databaseIP, std::string const &databasePort, std::string const &databaseName){
         _databaseIP = databaseIP;
         _databasePort = databasePort;
