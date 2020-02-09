@@ -1,3 +1,6 @@
+#ifndef CASSANDRALOGGER_H
+#define CASSANDRALOGGER_H
+
 #include <cassandra.h>
 #include "BasePersistentLogger.hpp"
 class CassandraLogger : public BasePersistentLogger {
@@ -19,3 +22,5 @@ class CassandraLogger : public BasePersistentLogger {
         bool logMethod(std::string const &method, std::uint64_t clientID, std::string const &logContent);
        
 };
+
+#endif // CASSANDRALOGGER_H

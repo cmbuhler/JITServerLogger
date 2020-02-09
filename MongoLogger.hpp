@@ -1,5 +1,5 @@
-#ifndef JITSERVERLOGGER_MONGOLOGGER_HPP
-#define JITSERVERLOGGER_MONGOLOGGER_HPP
+#ifndef MONGOLOGGER_HPP
+#define MONGOLOGGER_HPP
 
 #include "BasePersistentLogger.hpp"
 #include <bsoncxx/builder/stream/helpers.hpp>
@@ -7,10 +7,6 @@
 #include <mongocxx/client.hpp>
 #include <mongocxx/uri.hpp>
 #include <mongocxx/instance.hpp>
-
-
-
-
 
 using bsoncxx::builder::stream::document;
 using bsoncxx::builder::stream::finalize;
@@ -34,4 +30,4 @@ public:
     bool logMethod(std::string const &method, std::string const &clientID, std::string const &logContent);
 };
 
-#endif //JITSERVERLOGGER_MONGOLOGGER_HPP
+#endif //MONGOLOGGER_HPP

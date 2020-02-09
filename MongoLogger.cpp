@@ -9,12 +9,6 @@
 
 mongocxx::instance MongoLogger::_inst = mongocxx::instance{};
 
-MongoLogger::MongoLogger(){
-    _databaseIP = "127.0.0.1";
-    _databasePort = "27017";
-    _databaseName = "jitserver_logs";
-}
-
 MongoLogger::MongoLogger(std::string const &databaseIP, std::string const &databasePort, std::string const &databaseName)
         : BasePersistentLogger(databaseIP, databasePort, databaseName){
 
