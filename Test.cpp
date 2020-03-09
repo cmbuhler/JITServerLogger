@@ -2,12 +2,12 @@
 
 #if defined CASSANDRA_LOGGER
 #include "CassandraLogger.hpp"
-#define DEFAULT_PORT "9042"
+#define DEFAULT_PORT 9042
 typedef CassandraLogger PersistentLogger;
 
 #elif defined MONGO_LOGGER
 #include "MongoLogger.hpp"
-#define DEFAULT_PORT "27017"
+#define DEFAULT_PORT 27017
 typedef MongoLogger PersistentLogger;
 
 #else
@@ -16,7 +16,7 @@ typedef MongoLogger PersistentLogger;
 
 int main() {
     auto* logger = new PersistentLogger("127.0.0.1", DEFAULT_PORT, "jitserver_logs", "jitlogger", "jitlogger");
-    std::string clientID = "570241675495946978";
+    std::uint64_t clientID = 570241675495946978;
     std::string method = "java/util/Hashtable()";
     if(logger->connect()){
         std::string logs =  "\
