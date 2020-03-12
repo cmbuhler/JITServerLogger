@@ -2,21 +2,15 @@
 #define MONGOLOGGER_HPP
 
 #include "BasePersistentLogger.hpp"
-#include <bsoncxx/builder/stream/helpers.hpp>
-#include <bsoncxx/builder/stream/document.hpp>
-#include <mongocxx/client.hpp>
-#include <mongocxx/uri.hpp>
-#include <mongocxx/instance.hpp>
-
-using bsoncxx::builder::stream::document;
-using bsoncxx::builder::stream::finalize;
+#include <mongoc/mongoc.h>
+#include "LoadDBLibs.hpp"
 
 class MongoLogger : public BasePersistentLogger {
 private:
-    static mongocxx::instance _inst;
-    mongocxx::uri _uri;
-    mongocxx::client _client;
-    mongocxx::database _db;
+    Omongoc_uri_t *_uri;
+    mongoc_client_t *_client;
+    mongoc_database_t *_db;
+    mongoc_collection_t *_collection;
 
     std::string constructURI();
 public:
