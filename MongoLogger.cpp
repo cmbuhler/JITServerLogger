@@ -9,12 +9,12 @@
 
 mongocxx::instance MongoLogger::_inst = mongocxx::instance{};
 
-MongoLogger::MongoLogger(std::string const &databaseIP, std::string const &databasePort, std::string const &databaseName)
+MongoLogger::MongoLogger(std::string const &databaseIP, std::uint32_t databasePort, std::string const &databaseName)
         : BasePersistentLogger(databaseIP, databasePort, databaseName){
 
 }
 
-MongoLogger::MongoLogger(std::string const &databaseIP, std::string const &databasePort, std::string const &databaseName,
+MongoLogger::MongoLogger(std::string const &databaseIP, std::uint32_t databasePort, std::string const &databaseName,
         std::string const &databaseUsername, std::string const &databasePassword)
         : BasePersistentLogger(databaseIP, databasePort, databaseName, databaseUsername, databasePassword){
 
@@ -32,12 +32,12 @@ std::string MongoLogger::constructURI() {
         // No IP try localhost
         _databaseIP = "127.0.0.1";
     }
-    if(_databasePort.empty()) {
+    if(!_databasePort) {
         // No Port try default MongoDB port
-        _databasePort = "27017";
+        _databasePort = 27017;
     }
 
-    std::string host = _databaseIP + ":" + _databasePort;
+    std::string host = _databaseIP + ":" + std::to_string(_databasePort);
 
     // Check if we have credentials
     std::string credentials = "";
@@ -62,8 +62,7 @@ bool MongoLogger::connect() {
         _client = mongocxx::client(_uri);
         _db = _client[_databaseName];
     } catch (const mongocxx::logic_error& e) {
-        std::cerr << "Error configuring connection to MongoDB Server: "
-            << e.what() << std::endl;
+        fprintf(stderr, "Error configuring connection to MongoDB Server: %s", e.what());
         return false;
     }
 
@@ -77,7 +76,7 @@ void MongoLogger::disconnect() {
     return;
 }
 
-bool MongoLogger::logMethod(std::string const &method, std::string const &clientID, std::string const &logContent) {
+bool MongoLogger::logMethod(std::string const &method, std::uint64_t clientID, std::string const &logContent) {
     mongocxx::collection logs = _db.collection("logs");
     auto builder = bsoncxx::builder::stream::document{};
     auto timestamp = std::chrono::system_clock::now();
@@ -93,7 +92,7 @@ bool MongoLogger::logMethod(std::string const &method, std::string const &client
      */
     bsoncxx::document::value doc_value = builder
             << "method" << method
-            << "client_id" << clientID
+            << "client_id" << std::to_string(clientID)
             << "log" << logContent
             << "timestamp" << bsoncxx::types::b_date(timestamp)
             << bsoncxx::builder::stream::finalize;
@@ -102,8 +101,7 @@ bool MongoLogger::logMethod(std::string const &method, std::string const &client
         bsoncxx::stdx::optional<mongocxx::result::insert_one> result =
                 logs.insert_one(doc_value.view());
     } catch (const mongocxx::bulk_write_exception& e){
-        std::cerr << "Error executing log insert query: "
-            << e.what() << std::endl;
+        fprintf(stderr, "Error executing log insert query: %s", e.what());
         return false;
     }
 
