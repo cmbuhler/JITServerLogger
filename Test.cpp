@@ -13,10 +13,17 @@ typedef MongoLogger PersistentLogger;
 #else
 #error Please specify one of compile variables MONGO_LOGGER CASSANDRA_LOGGER to enable Persistent Logging
 #endif
+#include "LoadDBLibs.hpp"
 
 int main() {
+    if(!JITServer::loadLibmongocAndSymbols() || !JITServer::loadLibbsonAndSymbols()){
+        return EXIT_FAILURE;
+    }
+#ifdef MONGO_LOGGER
+    Omongoc_init();
+#endif
     auto* logger = new PersistentLogger("127.0.0.1", DEFAULT_PORT, "jitserver_logs", "jitlogger", "jitlogger");
-    std::uint64_t clientID = 570241675495946978;
+    std::uint64_t clientID = 1234567890;
     std::string method = "java/util/Hashtable()";
     if(logger->connect()){
         std::string logs =  "\
@@ -36,6 +43,8 @@ int main() {
         logger->logMethod(method, clientID, "another log");
         logger->disconnect();
     }
-
+#ifdef MONGO_LOGGER
+    Omongoc_cleanup();
+#endif
     return 0;
 }

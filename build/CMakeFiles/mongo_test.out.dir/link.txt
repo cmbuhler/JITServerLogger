@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/mongo_test.out.dir/Test.cpp.o CMakeFiles/mongo_test.out.dir/MongoLogger.cpp.o  -o mongo_test.out -Wl,-rpath,/usr/local/lib /usr/local/lib/libmongocxx.so /usr/local/lib/libbsoncxx.so /usr/local/lib/libbsoncxx.so 
