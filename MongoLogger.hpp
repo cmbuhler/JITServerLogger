@@ -2,15 +2,14 @@
 #define MONGOLOGGER_HPP
 
 #include "BasePersistentLogger.hpp"
-#include <mongoc/mongoc.h>
 #include "LoadDBLibs.hpp"
 
 class MongoLogger : public BasePersistentLogger {
 private:
     Omongoc_uri_t *_uri;
-    mongoc_client_t *_client;
-    mongoc_database_t *_db;
-    mongoc_collection_t *_collection;
+    Omongoc_client_t *_client;
+    Omongoc_database_t *_db;
+    Omongoc_collection_t *_collection;
 
     std::string constructURI();
 public:

@@ -1,7 +1,7 @@
 #include "MongoLogger.hpp"
 #include <ctime>
 #include <iostream>
-#include <mongoc/mongoc.h>
+#include "LoadDBLibs.hpp"
 
 MongoLogger::MongoLogger(std::string const &databaseIP, std::uint32_t databasePort, std::string const &databaseName)
         : BasePersistentLogger(databaseIP, databasePort, databaseName){
@@ -16,10 +16,10 @@ MongoLogger::MongoLogger(std::string const &databaseIP, std::uint32_t databasePo
 
 MongoLogger::~MongoLogger() {
     //Clean up this mongoc logger.
-    mongoc_collection_destroy(_collection);
-    mongoc_database_destroy(_db);
-    mongoc_uri_destroy(_uri);
-    mongoc_client_destroy(_client);
+    Omongoc_collection_destroy(_collection);
+    Omongoc_database_destroy(_db);
+    Omongoc_uri_destroy(_uri);
+    Omongoc_client_destroy(_client);
 }
 
 std::string MongoLogger::constructURI() {
@@ -57,7 +57,7 @@ std::string MongoLogger::constructURI() {
 }
 
 bool MongoLogger::connect() {
-    bson_error_t error;
+    Obson_error_t error;
 
     //Validate URI.
     _uri = Omongoc_uri_new_with_error(constructURI().c_str(), &error);
@@ -71,18 +71,18 @@ bool MongoLogger::connect() {
     }
 
     //Create a client
-    _client = mongoc_client_new_from_uri(_uri);
+    _client = Omongoc_client_new_from_uri(_uri);
     if(!_client){
         return false;
     }
 
     //Register the application name so we can track it in the profile logs
     //on the server if we want.
-    mongoc_client_set_appname(_client, "jitserver");
+    Omongoc_client_set_appname(_client, "jitserver");
 
     //Get a handle on the database and collection.
-    _db = mongoc_client_get_database(_client, _databaseName.c_str());
-    _collection = mongoc_client_get_collection (_client, _databaseName.c_str(), "logs");
+    _db = Omongoc_client_get_database(_client, _databaseName.c_str());
+    _collection = Omongoc_client_get_collection (_client, _databaseName.c_str(), "logs");
 
     //Mongo is designed to be always available. Thus there is no "Connection" object
     //and you will find that the "Connection" is tested on every read/write.
@@ -95,7 +95,9 @@ void MongoLogger::disconnect() {
 }
 
 bool MongoLogger::logMethod(std::string const &method, std::uint64_t clientID, std::string const &logContent) {
-    std::time_t timestamp = time(nullptr);
+    struct timespec t;
+    clock_gettime(CLOCK_REALTIME, &t);
+    int64_t timestamp = t.tv_sec * INT64_C(1000) + t.tv_nsec / 1000000;
     /*
      * The following constructs and inserts the following JSON structure:
      * {
@@ -105,22 +107,20 @@ bool MongoLogger::logMethod(std::string const &method, std::uint64_t clientID, s
      *     "timestamp" : ISODate
      * }
      */
-    bson_t *insert;
-    bson_error_t error;
+    Obson_t *insert = Obson_new();
+    Obson_error_t error;
+    Obson_append_utf8(insert, "method", -1, method.c_str(), -1);
+    Obson_append_utf8(insert, "client_id", -1, std::to_string(clientID).c_str(), -1);
+//TODO: CONVER CLIENTID to CHAR * without using STRING.
+    Obson_append_utf8(insert, "log", -1, logContent.c_str(), -1);
+    Obson_append_date_time(insert, "timestamp", -1, timestamp);
 
-    insert = BCON_NEW (
-            "method", BCON_UTF8(method.c_str()),
-            "client_id", BCON_UTF8(std::to_string(clientID).c_str()),
-            "log", BCON_UTF8(logContent.c_str()),
-            "timestamp", BCON_DATE_TIME(timestamp)
-    );
-
-    if (!mongoc_collection_insert_one(_collection, insert, NULL, NULL, &error)) {
+    if (!Omongoc_collection_insert_one(_collection, insert, NULL, NULL, &error)) {
         fprintf(stderr, "JITServer: Mongo Logger failed to insert log.\n"
                         "error message: %s\n", error.message);
     }
 
-    bson_destroy (insert);
+    Obson_destroy (insert);
 
     return true;
 }

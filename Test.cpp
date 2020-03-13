@@ -16,14 +16,14 @@ typedef MongoLogger PersistentLogger;
 #include "LoadDBLibs.hpp"
 
 int main() {
-    if(!JITServer::loadLibmongocAndSymbols()){
+    if(!JITServer::loadLibmongocAndSymbols() || !JITServer::loadLibbsonAndSymbols()){
         return EXIT_FAILURE;
     }
 #ifdef MONGO_LOGGER
     Omongoc_init();
 #endif
     auto* logger = new PersistentLogger("127.0.0.1", DEFAULT_PORT, "jitserver_logs", "jitlogger", "jitlogger");
-    std::uint64_t clientID = 570241675495946978;
+    std::uint64_t clientID = 1234567890;
     std::string method = "java/util/Hashtable()";
     if(logger->connect()){
         std::string logs =  "\
